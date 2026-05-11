@@ -1,0 +1,8 @@
+node_modules/
+# .env is intentionally committed for capstone convenience — keep repo PRIVATE
+.env.local
+*.log
+npm-debug.log*
+
+# Local development scratch files (e.g., _check.js, _seed.js)
+_*.js

@@ -79,28 +79,29 @@ const Dashboard = ({ members, consultations, loas, soas, user, alerts }) => {
       { name: 'Laboratory', value: filtered.reduce((s, x) => s + x.laboratory, 0), color: '#166534' },
       { name: 'X-ray', value: filtered.reduce((s, x) => s + x.xray, 0), color: '#15803d' },
       { name: 'Medicines', value: filtered.reduce((s, x) => s + x.medicines, 0), color: '#eab308' },
+      { name: 'Professional Fee', value: filtered.reduce((s, x) => s + (x.professionalFee || 0), 0), color: '#f97316' },
       { name: 'Others', value: filtered.reduce((s, x) => s + x.others, 0), color: '#ca8a04' },
     ].filter(x => x.value > 0);
   }, [soas, isMember, user]);
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-4 md:space-y-6">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-xl">
+      <div className="bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-900 rounded-2xl p-4 md:p-8 text-white relative overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400 rounded-full blur-3xl opacity-20 -translate-y-1/3 translate-x-1/3"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-400 rounded-full blur-3xl opacity-20 translate-y-1/3"></div>
         <div className="relative flex items-center justify-between">
           <div>
-            <div className="text-yellow-300 text-xs font-bold tracking-widest uppercase mb-2">
+            <div className="text-yellow-300 text-[10px] md:text-xs font-bold tracking-widest uppercase mb-1 md:mb-2">
               {new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </div>
-            <h2 className="font-display text-4xl font-semibold mb-2 leading-tight">
+            <h2 className="font-display text-2xl md:text-4xl font-semibold mb-1 md:mb-2 leading-tight">
               {user.role === 'member' ? `Good day, ${user.name}.` :
                user.role === 'admin' ? 'System Overview.' :
                user.role === 'director' ? `Good day, Director ${user.name.split(' ').slice(-1)[0]}.` :
                'Good day, Coordinator.'}
             </h2>
-            <p className="text-emerald-100 max-w-xl">
+            <p className="text-emerald-100 text-xs md:text-base max-w-xl">
               {user.role === 'member'
                 ? `Your WeCare coverage remains a vital part of your well-being. You have ${formatPesoShort(coverageLimit - stats.totalSpent)} available this year.`
                 : user.role === 'admin'
@@ -132,7 +133,7 @@ const Dashboard = ({ members, consultations, loas, soas, user, alerts }) => {
       )}
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         <StatCard
           icon={Users}
           label={isMember ? 'My Profile' : 'Total Members'}
@@ -259,40 +260,42 @@ const Dashboard = ({ members, consultations, loas, soas, user, alerts }) => {
 
       {/* Recent Activity */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <h3 className="font-display text-xl font-semibold text-emerald-900">Recent Consultations</h3>
-            <p className="text-sm text-gray-500">Latest activity from members</p>
+            <h3 className="font-display text-lg md:text-xl font-semibold text-emerald-900">Recent Consultations</h3>
+            <p className="text-xs md:text-sm text-gray-500">Latest activity from members</p>
           </div>
         </div>
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              {['Serial', 'Member', 'Type', 'Date', 'Status'].map(h => (
-                <th key={h} className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-6 py-3">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {(isMember ? consultations.filter(c => c.memberId === user.memberId) : consultations)
-              .slice(-5).reverse().map(c => {
-                const m = members.find(x => x.id === c.memberId);
-                const d = m?.dependents?.find(x => x.id === c.dependentId);
-                return (
-                  <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-mono text-sm text-gray-900">#{c.serialNo}</td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{d ? d.name : m?.name}</div>
-                      {d && <div className="text-xs text-gray-500">Dependent of {m?.name}</div>}
-                    </td>
-                    <td className="px-6 py-4"><PatientTypeBadge type={c.patientType} /></td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{formatDate(c.date)}</td>
-                    <td className="px-6 py-4"><StatusBadge status={c.status} /></td>
-                  </tr>
-                );
-              })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                {['Serial', 'Member', 'Type', 'Date', 'Status'].map(h => (
+                  <th key={h} className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider px-2 md:px-6 py-2 md:py-3">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {(isMember ? consultations.filter(c => c.memberId === user.memberId) : consultations)
+                .slice(-5).reverse().map(c => {
+                  const m = members.find(x => x.id === c.memberId);
+                  const d = m?.dependents?.find(x => x.id === c.dependentId);
+                  return (
+                    <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-2 md:px-6 py-2 md:py-4 font-mono text-xs md:text-sm text-gray-900">#{c.serialNo}</td>
+                      <td className="px-2 md:px-6 py-2 md:py-4">
+                        <div className="text-xs md:text-sm font-medium text-gray-900">{d ? d.name : m?.name}</div>
+                        {d && <div className="text-[9px] text-gray-500">Dep. of {m?.name}</div>}
+                      </td>
+                      <td className="px-2 md:px-6 py-2 md:py-4"><PatientTypeBadge type={c.patientType} /></td>
+                      <td className="px-2 md:px-6 py-2 md:py-4 text-xs md:text-sm text-gray-600 whitespace-nowrap">{formatDate(c.date)}</td>
+                      <td className="px-2 md:px-6 py-2 md:py-4"><StatusBadge status={c.status} /></td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

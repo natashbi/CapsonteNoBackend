@@ -84,7 +84,7 @@ const MembersView = ({ members, setMembers, consultations, setConsultations, soa
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search members..."
-            className="w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600"
+            className="w-full md:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600"
           />
         </div>
         {!isDirector && (
@@ -94,8 +94,8 @@ const MembersView = ({ members, setMembers, consultations, setConsultations, soa
         )}
       </TopBar>
 
-      <div className="p-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="p-4 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
           {filtered.map((m, idx) => {
             const memberConsults = consultations.filter(c => c.memberId === m.id && !c.dependentId);
             const spent = soas.filter(s => s.memberId === m.id && s.status === 'Reviewed').reduce((sum, s) => sum + s.total, 0);
@@ -202,114 +202,114 @@ const MemberProfile = ({ member, consultations, soas, onBack, onMenuToggle }) =>
   return (
     <>
       <TopBar title={member.name} subtitle={`Employee ID: ${member.employeeId} — ${member.department}`} onMenuToggle={onMenuToggle}>
-        <button onClick={onBack} className="text-sm text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl font-medium">← Back to Members</button>
+        <button onClick={onBack} className="text-xs md:text-sm text-gray-600 hover:bg-gray-50 px-2 md:px-4 py-2 rounded-xl font-medium">← Back</button>
       </TopBar>
-      <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
+      <div className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="lg:col-span-1 space-y-4 md:space-y-6">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-6">
             <div className="flex flex-col items-center text-center">
               {member.photo ? (
-                <img src={member.photo} alt={member.name} className="w-32 h-32 rounded-2xl object-cover border-4 border-yellow-400" />
+                <img src={member.photo} alt={member.name} className="w-24 md:w-32 h-24 md:h-32 rounded-2xl object-cover border-4 border-yellow-400" />
               ) : (
-                <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-emerald-700 to-emerald-900 flex items-center justify-center text-yellow-300 font-bold text-4xl border-4 border-yellow-400">
+                <div className="w-24 md:w-32 h-24 md:h-32 rounded-2xl bg-gradient-to-br from-emerald-700 to-emerald-900 flex items-center justify-center text-yellow-300 font-bold text-3xl md:text-4xl border-4 border-yellow-400">
                   {getInitials(member.name)}
                 </div>
               )}
-              <div className="font-display text-2xl font-semibold text-emerald-900 mt-4">{member.name}</div>
-              <div className="text-sm text-gray-500 font-mono mt-1">{member.employeeId}</div>
-              <span className={`mt-2 text-xs font-bold px-3 py-1 rounded-full ${
+              <div className="font-display text-lg md:text-2xl font-semibold text-emerald-900 mt-3 md:mt-4">{member.name}</div>
+              <div className="text-xs md:text-sm text-gray-500 font-mono mt-1">{member.employeeId}</div>
+              <span className={`mt-2 text-xs font-bold px-2 md:px-3 py-1 rounded-full ${
                 member.status === 'Tenured' ? 'bg-yellow-400 text-emerald-900' :
                 member.status === 'Non-Tenured' ? 'bg-emerald-200 text-emerald-900' :
                 'bg-gray-200 text-gray-800'
               }`}>{member.status}</span>
             </div>
-            <div className="mt-6 space-y-3 text-sm">
+            <div className="mt-4 md:mt-6 space-y-2 md:space-y-3 text-xs md:text-sm">
               <div className="flex justify-between"><span className="text-gray-500">Department</span><span className="font-medium text-gray-900">{member.department}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Age</span><span className="font-medium text-gray-900">{member.age}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Gender</span><span className="font-medium text-gray-900">{member.gender}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-medium text-gray-900 text-xs">{member.email}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-medium text-gray-900 text-[10px] md:text-xs">{member.email}</span></div>
               <div className="flex justify-between"><span className="text-gray-500">Phone</span><span className="font-medium text-gray-900">{member.phone}</span></div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl p-6 text-white">
-            <div className="text-emerald-200 text-xs font-bold uppercase tracking-widest mb-2">Coverage Balance</div>
-            <div className="font-display text-3xl font-semibold">{formatPesoShort(coverageLimit - spent)}</div>
-            <div className="text-sm text-emerald-200 mt-1">of {formatPesoShort(coverageLimit)} total</div>
-            <div className="mt-4 h-2 bg-emerald-950/50 rounded-full overflow-hidden">
+          <div className="bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl p-4 md:p-6 text-white">
+            <div className="text-emerald-200 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-2">Coverage Balance</div>
+            <div className="font-display text-2xl md:text-3xl font-semibold">{formatPesoShort(coverageLimit - spent)}</div>
+            <div className="text-xs md:text-sm text-emerald-200 mt-1">of {formatPesoShort(coverageLimit)} total</div>
+            <div className="mt-3 md:mt-4 h-2 bg-emerald-950/50 rounded-full overflow-hidden">
               <div className="h-full bg-yellow-400 transition-all" style={{ width: `${100 - (spent / coverageLimit) * 100}%` }}></div>
             </div>
             <div className="text-xs text-emerald-200 mt-2">{formatPesoShort(spent)} used this year</div>
           </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
-              <h3 className="font-display text-xl font-semibold text-emerald-900">Dependents ({(member.dependents || []).length})</h3>
+            <div className="p-4 md:p-6 border-b border-gray-100">
+              <h3 className="font-display text-lg md:text-xl font-semibold text-emerald-900">Dependents ({(member.dependents || []).length})</h3>
             </div>
             {(member.dependents || []).length > 0 ? (
               <div className="divide-y divide-gray-100">
                 {member.dependents.map(d => {
                   const dConsults = consultations.filter(c => c.dependentId === d.id).length;
                   return (
-                    <div key={d.id} className="p-4 flex items-center gap-4">
+                    <div key={d.id} className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
                       {d.photo ? (
-                        <img src={d.photo} alt={d.name} className="w-12 h-12 rounded-xl object-cover" />
+                        <img src={d.photo} alt={d.name} className="w-10 md:w-12 h-10 md:h-12 rounded-xl object-cover flex-shrink-0" />
                       ) : (
-                        <div className="w-12 h-12 rounded-xl bg-yellow-100 text-yellow-800 flex items-center justify-center font-bold">
+                        <div className="w-10 md:w-12 h-10 md:h-12 rounded-xl bg-yellow-100 text-yellow-800 flex items-center justify-center font-bold text-sm flex-shrink-0">
                           {getInitials(d.name)}
                         </div>
                       )}
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{d.name}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 text-sm truncate">{d.name}</div>
                         <div className="text-xs text-gray-500">{d.relationship} • Age {d.age}</div>
                       </div>
-                      <div className="text-right text-sm">
+                      <div className="text-right text-xs md:text-sm flex-shrink-0">
                         <div className="font-semibold text-emerald-800">{dConsults}/{dependentConsultLimit}</div>
-                        <div className="text-xs text-gray-500">consultations</div>
+                        <div className="text-xs text-gray-500 hidden md:inline">consults</div>
                       </div>
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="p-8 text-center text-gray-400 text-sm">No dependents registered</div>
+              <div className="p-6 md:p-8 text-center text-gray-400 text-xs md:text-sm">No dependents registered</div>
             )}
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
-              <h3 className="font-display text-xl font-semibold text-emerald-900">Consultation History</h3>
-              <p className="text-sm text-gray-500">{memberConsults.length} total consultations</p>
+            <div className="p-4 md:p-6 border-b border-gray-100">
+              <h3 className="font-display text-lg md:text-xl font-semibold text-emerald-900">Consultation History</h3>
+              <p className="text-xs md:text-sm text-gray-500">{memberConsults.length} total consultations</p>
             </div>
             {memberConsults.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">Serial</th>
-                      <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">Date</th>
-                      <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">Type</th>
-                      <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">Diagnosis</th>
-                      <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">Status</th>
+                      <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3">Serial</th>
+                      <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3">Date</th>
+                      <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3">Type</th>
+                      <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3 hidden md:table-cell">Diagnosis</th>
+                      <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {memberConsults.map(c => (
                       <tr key={c.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-3 font-mono text-sm">#{c.serialNo}</td>
-                        <td className="px-6 py-3 text-sm">{formatDate(c.date)}</td>
-                        <td className="px-6 py-3"><PatientTypeBadge type={c.patientType} /></td>
-                        <td className="px-6 py-3 text-sm text-gray-600 max-w-xs truncate">{c.diagnosis || '—'}</td>
-                        <td className="px-6 py-3"><StatusBadge status={c.status} /></td>
+                        <td className="px-2 md:px-6 py-2 md:py-3 font-mono text-xs md:text-sm">#{c.serialNo}</td>
+                        <td className="px-2 md:px-6 py-2 md:py-3 text-xs md:text-sm">{formatDate(c.date)}</td>
+                        <td className="px-2 md:px-6 py-2 md:py-3"><PatientTypeBadge type={c.patientType} /></td>
+                        <td className="px-2 md:px-6 py-2 md:py-3 text-xs md:text-sm text-gray-600 max-w-xs truncate hidden md:table-cell">{c.diagnosis || <span className="text-gray-400 italic">Not yet diagnosed</span>}</td>
+                        <td className="px-2 md:px-6 py-2 md:py-3"><StatusBadge status={c.status} /></td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <div className="p-8 text-center text-gray-400 text-sm">No consultation records</div>
+              <div className="p-6 md:p-8 text-center text-gray-400 text-xs md:text-sm">No consultation records</div>
             )}
           </div>
         </div>
@@ -322,7 +322,7 @@ const MemberProfile = ({ member, consultations, soas, onBack, onMenuToggle }) =>
 const MemberFormModal = ({ member, onSave, onClose, saving }) => {
   const [form, setForm] = useState(member || {
     name: '', employeeId: '', department: '', email: '', phone: '', age: '',
-    gender: 'Female', status: 'Tenured', photo: null, dateHired: '', active: true, dependents: []
+    gender: 'Female', status: 'Tenured', photo: null, dateHired: '', password: '', active: true, dependents: []
   });
   const [formError, setFormError] = useState('');
 
@@ -358,6 +358,10 @@ const MemberFormModal = ({ member, onSave, onClose, saving }) => {
     setFormError('');
     if (!form.name.trim() || !form.employeeId.trim() || !form.department.trim()) {
       setFormError('Please fill in all required fields: Name, Employee ID, and Department.');
+      return;
+    }
+    if (!member && !form.password) {
+      setFormError('Please set a login password for the new member.');
       return;
     }
     if (!form.photo && !member) {
@@ -424,6 +428,7 @@ const MemberFormModal = ({ member, onSave, onClose, saving }) => {
             <Field label="Gender" select options={['Female', 'Male']} value={form.gender} onChange={v => setForm({...form, gender: v})} />
             <Field label="Employee Status" select options={['Tenured', 'Non-Tenured', 'Contractual']} value={form.status} onChange={v => setForm({...form, status: v})} />
             <Field label="Date Hired" type="date" value={form.dateHired} onChange={v => setForm({...form, dateHired: v})} />
+            {!member && <Field label="Login Password" required type="password" value={form.password} onChange={v => setForm({...form, password: v})} placeholder="Set member's login password" />}
           </div>
         </div>
 
@@ -476,14 +481,19 @@ const DependentRow = ({ dep, onUpdate, onRemove }) => {
     <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex gap-3 items-start">
       <div className="flex-shrink-0">
         {dep.photo ? (
-          <img src={dep.photo} alt="" className="w-16 h-16 rounded-lg object-cover border-2 border-white" />
+          <div className="relative">
+            <img src={dep.photo} alt="" className="w-20 h-20 rounded-lg object-cover border-2 border-white" />
+            <button onClick={() => inp.current?.click()} className="absolute inset-0 rounded-lg bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
+              <Camera className="w-5 h-5 text-white" />
+            </button>
+          </div>
         ) : (
-          <button onClick={() => inp.current?.click()} className="w-16 h-16 rounded-lg bg-white border-2 border-dashed border-yellow-400 flex items-center justify-center hover:bg-yellow-100">
-            <Camera className="w-5 h-5 text-yellow-700" />
+          <button onClick={() => inp.current?.click()} className="w-20 h-20 rounded-lg bg-white border-2 border-dashed border-yellow-400 flex flex-col items-center justify-center hover:bg-yellow-50 hover:border-yellow-500 cursor-pointer transition-all">
+            <Upload className="w-6 h-6 text-emerald-700 mb-1" />
+            <span className="text-[10px] font-bold text-emerald-700 text-center leading-tight">Upload<br/>Photo</span>
           </button>
         )}
         <input ref={inp} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
-        {dep.photo && <button onClick={() => inp.current?.click()} className="text-xs text-emerald-800 font-semibold mt-1 block w-full text-center">Change</button>}
       </div>
       <div className="flex-1 grid grid-cols-3 gap-2">
         <input value={dep.name} onChange={e => onUpdate('name', e.target.value)} placeholder="Full name" className="col-span-2 px-3 py-2 rounded-lg border border-yellow-300 bg-white text-sm focus:outline-none focus:border-emerald-600" />

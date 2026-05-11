@@ -8,13 +8,11 @@ import {
 import { getInitials } from '../utils/helpers.js';
 import { api } from '../services/api.js';
 import { useAppUser } from '../context/UserContext.jsx';
-import ChangePasswordModal from './shared/ChangePasswordModal.jsx';
 
 // ============ SIDEBAR ============
-const Sidebar = ({ currentView, setCurrentView, user, onLogout, counts, isOpen, onClose }) => {
+const Sidebar = ({ currentView, setCurrentView, user, onLogout, counts, isOpen, onClose, onShowChangePassword }) => {
   const [logoError, setLogoError] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showChangePassword, setShowChangePassword] = useState(false);
   const photoInputRef = useRef(null);
   const { setUser } = useAppUser();
 
@@ -83,7 +81,7 @@ const Sidebar = ({ currentView, setCurrentView, user, onLogout, counts, isOpen, 
       { id: 'dashboard', icon: LayoutDashboard, label: 'My Dashboard' },
       { id: 'consultations', icon: Stethoscope, label: 'My Consultations' },
       { id: 'loa', icon: FileSignature, label: 'My LOAs' },
-      { id: 'soa', icon: Receipt, label: 'My Expenses (SOA)' },
+      { id: 'soa', icon: Receipt, label: 'History' },
     ],
   };
 
@@ -105,7 +103,7 @@ const Sidebar = ({ currentView, setCurrentView, user, onLogout, counts, isOpen, 
   const label = roleLabels[user.role] || { title: user.role, section: 'Main Menu' };
 
   const sidebarContent = (
-    <aside className="fixed left-0 top-0 w-72 bg-white border-r border-gray-200 flex flex-col h-screen z-50">
+    <aside className="w-72 bg-white border-r border-gray-200 flex flex-col h-screen">
       {/* Logo */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center justify-between">
@@ -185,7 +183,7 @@ const Sidebar = ({ currentView, setCurrentView, user, onLogout, counts, isOpen, 
               <Camera className="w-4 h-4 text-gray-500" /> Update Profile Picture
             </button>
             <button
-              onClick={() => { setShowUserMenu(false); setShowChangePassword(true); }}
+              onClick={() => { setShowUserMenu(false); onShowChangePassword(); }}
               className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 text-left border-t border-gray-100"
             >
               <KeyRound className="w-4 h-4 text-gray-500" /> Change Password
@@ -223,8 +221,6 @@ const Sidebar = ({ currentView, setCurrentView, user, onLogout, counts, isOpen, 
           </div>
           <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? '' : 'rotate-180'}`} />
         </button>
-
-        {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
       </div>
     </aside>
   );
@@ -239,11 +235,9 @@ const Sidebar = ({ currentView, setCurrentView, user, onLogout, counts, isOpen, 
         />
       )}
 
-      {/* Desktop: always visible */}
-      <div className="hidden md:flex">
-        <div className="sticky top-0 h-screen">
-          {sidebarContent}
-        </div>
+      {/* Desktop: always visible and sticky */}
+      <div className="hidden md:block fixed left-0 top-0 h-screen z-40">
+        {sidebarContent}
       </div>
 
       {/* Mobile: slide-in overlay */}

@@ -9,6 +9,7 @@ import { ToastProvider, useToast } from './components/shared/Toast.jsx';
 import FontLoader from './components/FontLoader.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import TopBar from './components/TopBar.jsx';
+import ChangePasswordModal from './components/shared/ChangePasswordModal.jsx';
 import LoginScreen from './views/LoginScreen.jsx';
 import Dashboard from './views/Dashboard.jsx';
 import MembersView from './views/Members.jsx';
@@ -31,10 +32,12 @@ function AppInner() {
   const [soas, setSoas] = useState([]);
   const [systemUsers, setSystemUsers] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [settings, setSettings] = useState(initialSettings);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const refetch = useCallback(async () => {
     setApiError(null);
@@ -43,18 +46,20 @@ function AppInner() {
       const savedUser = JSON.parse(localStorage.getItem('wecare_user') || 'null');
       const isAdmin = savedUser?.role === 'admin';
 
-      const [membersData, consultationsData, loasData, soasData, settingsData] = await Promise.all([
+      const [membersData, consultationsData, loasData, soasData, settingsData, notificationsData] = await Promise.all([
         api.getMembers(),
         api.getConsultations(),
         api.getLoas(),
         api.getSoas(),
         api.getSettings(),
+        api.getNotifications().catch(() => []),
       ]);
       setMembers(membersData);
       setConsultations(consultationsData);
       setLoas(loasData);
       setSoas(soasData);
       setSettings(settingsData);
+      setNotifications(notificationsData);
 
       if (savedUser?.role === 'member') {
         const currentMember = membersData.find(m => m.id === savedUser.memberId);
@@ -92,6 +97,14 @@ function AppInner() {
       }
     }
   }, [refetch]);
+
+  // Poll backend notifications every 30s while signed in
+  useEffect(() => {
+    if (!user) return;
+    const tick = () => api.getNotifications().then(setNotifications).catch(() => {});
+    const id = setInterval(tick, 30_000);
+    return () => clearInterval(id);
+  }, [user]);
 
   // Auto-expire Approved LOAs whose validity window has passed
   useEffect(() => {
@@ -152,12 +165,13 @@ function AppInner() {
   const handleApproveMember = async (memberId) => {
     try {
       await api.approveMember(memberId);
-      const [membersData, usersData, auditData] = await Promise.all([
-        api.getMembers(), api.getUsers(), api.getAudit(),
-      ]);
+      const membersData = await api.getMembers();
       setMembers(membersData);
-      setSystemUsers(usersData);
-      setAuditLogs(auditData);
+      if (user?.role === 'admin') {
+        const [usersData, auditData] = await Promise.all([api.getUsers(), api.getAudit()]);
+        setSystemUsers(usersData);
+        setAuditLogs(auditData);
+      }
       toast('Member approved successfully.', 'success');
     } catch (err) {
       toast(err.message || 'Failed to approve member', 'error');
@@ -167,9 +181,12 @@ function AppInner() {
   const handleRejectMember = async (memberId, _approverName, reason) => {
     try {
       await api.rejectMember(memberId, reason);
-      const [membersData, auditData] = await Promise.all([api.getMembers(), api.getAudit()]);
+      const membersData = await api.getMembers();
       setMembers(membersData);
-      setAuditLogs(auditData);
+      if (user?.role === 'admin') {
+        const auditData = await api.getAudit();
+        setAuditLogs(auditData);
+      }
       toast('Member registration rejected.', 'warning');
     } catch (err) {
       toast(err.message || 'Failed to reject member', 'error');
@@ -205,8 +222,15 @@ function AppInner() {
         arr.push({ type: 'warning', title: 'Nearing consultation limit', message: `${m.name} used ${count}/${memberConsultLimit}` });
       }
     });
-    return arr;
-  }, [user, members, loas, consultations, soas, settings]);
+
+    // Backend-stored notifications (e.g., member uploaded a consultation document).
+    // Show only unread ones, newest first, capped at 10.
+    const backend = notifications
+      .filter(n => !n.read)
+      .slice(0, 10)
+      .map(n => ({ type: n.type || 'info', title: n.title, message: n.message }));
+    return [...backend, ...arr];
+  }, [user, members, loas, consultations, soas, settings, notifications]);
 
   const approvedMembers = members.filter(m => m.approvalStatus === 'Approved');
   const counts = {
@@ -272,7 +296,7 @@ function AppInner() {
     <SettingsContext.Provider value={settings}>
       <FontLoader />
       <div className="flex min-h-screen bg-gray-50">
-        <div className="no-print">
+        <div className="no-print hidden md:block">
           <Sidebar
             currentView={currentView}
             setCurrentView={(view) => { setCurrentView(view); setSidebarOpen(false); }}
@@ -281,9 +305,25 @@ function AppInner() {
             counts={counts}
             isOpen={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
+            onShowChangePassword={() => setShowChangePassword(true)}
           />
         </div>
-        <main className="flex-1 min-w-0 md:ml-72">
+        {sidebarOpen && <div className="fixed inset-0 bg-black/50 md:hidden z-40" onClick={() => setSidebarOpen(false)} />}
+        {sidebarOpen && (
+          <div className="md:hidden">
+            <Sidebar
+              currentView={currentView}
+              setCurrentView={(view) => { setCurrentView(view); setSidebarOpen(false); }}
+              user={user}
+              onLogout={handleLogout}
+              counts={counts}
+              isOpen={sidebarOpen}
+              onClose={() => setSidebarOpen(false)}
+              onShowChangePassword={() => setShowChangePassword(true)}
+            />
+          </div>
+        )}
+        <main className="flex-1 min-w-0 md:ml-72 w-full h-screen overflow-y-auto overflow-x-hidden">
           {currentView === 'dashboard' && (
             <>
               <TopBar title="Dashboard" subtitle="Overview of the WeCare program" alerts={alerts} onMenuToggle={() => setSidebarOpen(prev => !prev)} />
@@ -319,6 +359,7 @@ function AppInner() {
           )}
         </main>
       </div>
+      {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
     </SettingsContext.Provider>
     </NotificationsContext.Provider>
     </UserContext.Provider>

@@ -1,0 +1,29 @@
+{
+  "name": "wecare-backend",
+  "version": "1.0.0",
+  "description": "WeCare Healthcare Program Backend API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "setup": "node src/scripts/setup.js",
+    "seed": "node src/scripts/seed.js"
+  },
+  "keywords": ["healthcare", "api", "express", "postgresql"],
+  "author": "WeCare Team",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.2",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^8.5.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

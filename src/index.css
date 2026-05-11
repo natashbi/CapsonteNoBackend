@@ -1,3 +1,70 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  /* Touch-friendly button targets (minimum 44x44 for mobile) */
+  .touch-target {
+    @apply min-h-11 min-w-11;
+  }
+
+  /* Smooth fade animations for responsive transitions */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-fadeOut {
+    animation: fadeOut 0.5s ease-in-out;
+  }
+
+  /* Responsive text sizes */
+  @layer utilities {
+    @media (max-width: 640px) {
+      .text-responsive-lg {
+        @apply text-lg;
+      }
+      .text-responsive-xl {
+        @apply text-xl;
+      }
+      .text-responsive-2xl {
+        @apply text-2xl;
+      }
+    }
+  }
+
+  /* Better scrollbar for mobile */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(209, 213, 219, 0.5) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded;
+  }
+}

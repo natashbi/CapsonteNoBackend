@@ -68,12 +68,11 @@ const LOAView = ({ loas, setLoas, consultations, members, soas, user, onMenuTogg
 
   const handleApprove = async (id) => {
     try {
-      const updated = await api.updateLoa(id, {
-        status: 'Approved',
-        approvedBy: user.name,
-        approvedAt: new Date().toISOString(),
-      });
+      // Use the dedicated approve endpoint — admin/coordinator/director allowed.
+      // PUT /:id is admin/coordinator only and would 403 the director.
+      const updated = await api.approveLoa(id);
       setLoas(prev => prev.map(l => l.id === id ? updated : l));
+      toast('LOA approved.', 'success');
     } catch (err) {
       toast(err.message || 'Failed to approve LOA', 'error');
     }
@@ -81,12 +80,7 @@ const LOAView = ({ loas, setLoas, consultations, members, soas, user, onMenuTogg
 
   const handleReject = async (id, reason) => {
     try {
-      const updated = await api.updateLoa(id, {
-        status: 'Rejected',
-        approvedBy: user.name,
-        approvedAt: new Date().toISOString(),
-        rejectionReason: reason || '',
-      });
+      const updated = await api.rejectLoa(id, reason);
       setLoas(prev => prev.map(l => l.id === id ? updated : l));
       toast('LOA rejected.', 'warning');
     } catch (err) {
@@ -98,8 +92,9 @@ const LOAView = ({ loas, setLoas, consultations, members, soas, user, onMenuTogg
 
   const handlePostLoa = async (id, visitData) => {
     try {
-      const updated = await api.updateLoa(id, {
-        status: 'Used',
+      // Use the dedicated record-visit endpoint (verifyToken only) so members
+      // can record their own hospital visit without hitting the admin-gated PUT.
+      const updated = await api.recordLoaVisit(id, {
         visitDate: visitData.visitDate,
         doctorSeen: visitData.doctorSeen,
         visitNotes: visitData.notes,
@@ -136,7 +131,7 @@ const LOAView = ({ loas, setLoas, consultations, members, soas, user, onMenuTogg
       >
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search LOAs..." className="w-56 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search LOAs..." className="w-full md:w-56 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600" />
         </div>
         <select value={filter} onChange={e => setFilter(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:border-emerald-600">
           <option>All</option>
@@ -160,28 +155,37 @@ const LOAView = ({ loas, setLoas, consultations, members, soas, user, onMenuTogg
             <FileSignature className="w-4 h-4" /> Request LOA
           </button>
         )}
+        {isCoordinator && (
+          <button
+            onClick={() => { setEditing(null); setShowModal(true); }}
+            className="px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold flex items-center gap-1.5 md:gap-2 shadow-sm bg-emerald-800 hover:bg-emerald-900 text-white"
+            title="Create a new LOA on behalf of a member"
+          >
+            <FileSignature className="w-3.5 md:w-4 h-3.5 md:h-4" /> <span className="hidden md:inline">Upload LOA</span><span className="md:hidden">Upload</span>
+          </button>
+        )}
       </TopBar>
 
       {/* Member eligibility banner */}
       {isMember && (
-        <div className="mx-8 mt-5">
+        <div className="mx-2 md:mx-8 mt-4 md:mt-5">
           {memberEligibleConsultations.length === 0 ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-gray-700">
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-3 md:p-4 flex items-start gap-2 md:gap-3">
+              <AlertCircle className="w-4 md:w-5 h-4 md:h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+              <div className="text-xs md:text-sm text-gray-700">
                 <div className="font-semibold text-gray-900">No eligible consultations yet</div>
-                <div className="text-xs mt-1">
+                <div className="text-[10px] md:text-xs mt-1">
                   To request an LOA, you need an approved consultation with the uploaded consultation document.
                   Go to "My Consultations" to upload documents for approved visits.
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-700 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-emerald-900">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 md:p-4 flex items-start gap-2 md:gap-3">
+              <CheckCircle2 className="w-4 md:w-5 h-4 md:h-5 text-emerald-700 flex-shrink-0 mt-0.5" />
+              <div className="text-xs md:text-sm text-emerald-900">
                 <div className="font-semibold">You have {memberEligibleConsultations.length} consultation{memberEligibleConsultations.length !== 1 ? 's' : ''} eligible for LOA request</div>
-                <div className="text-xs mt-1 text-emerald-800">
+                <div className="text-[10px] md:text-xs mt-1 text-emerald-800">
                   Click "Request LOA" above to submit. LOAs must be approved by the Coordinator or Director before you can print them.
                 </div>
               </div>
@@ -192,53 +196,53 @@ const LOAView = ({ loas, setLoas, consultations, members, soas, user, onMenuTogg
 
       {/* Director approval banner */}
       {isDirector && pendingCount > 0 && (
-        <div className="mx-8 mt-6 bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-yellow-400 flex items-center justify-center flex-shrink-0">
-            <Clock className="w-6 h-6 text-emerald-900" />
+        <div className="mx-2 md:mx-8 mt-4 md:mt-6 bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-2xl p-3 md:p-5 flex items-center gap-2 md:gap-4">
+          <div className="w-10 md:w-12 h-10 md:h-12 rounded-xl bg-yellow-400 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-5 md:w-6 h-5 md:h-6 text-emerald-900" />
           </div>
-          <div className="flex-1">
-            <div className="font-display text-lg font-semibold text-emerald-900">{pendingCount} LOA{pendingCount !== 1 ? 's' : ''} awaiting your approval</div>
-            <div className="text-sm text-gray-700">Review each request carefully. Approved LOAs will be forwarded to the partner hospital.</div>
+          <div className="flex-1 min-w-0">
+            <div className="font-display text-sm md:text-lg font-semibold text-emerald-900">{pendingCount} LOA{pendingCount !== 1 ? 's' : ''} awaiting your approval</div>
+            <div className="text-xs md:text-sm text-gray-700">Review each request carefully. Approved LOAs will be forwarded to the partner hospital.</div>
           </div>
-          <button onClick={() => setFilter('Pending')} className="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2.5 rounded-xl text-sm font-semibold">
-            Review Pending
+          <button onClick={() => setFilter('Pending')} className="bg-emerald-800 hover:bg-emerald-900 text-white px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold flex-shrink-0">
+            Review
           </button>
         </div>
       )}
 
       {/* Coordinator approval banner */}
       {isCoordinator && pendingCount > 0 && filter !== 'Pending' && (
-        <div className="mx-8 mt-6 bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 flex items-center gap-3">
-          <Clock className="w-6 h-6 text-yellow-700 flex-shrink-0" />
+        <div className="mx-2 md:mx-8 mt-4 md:mt-6 bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-2xl p-3 md:p-4 flex items-center gap-2 md:gap-3">
+          <Clock className="w-5 md:w-6 h-5 md:h-6 text-yellow-700 flex-shrink-0" />
           <div className="flex-1">
-            <div className="font-semibold text-emerald-900 text-sm">{pendingCount} LOA request{pendingCount !== 1 ? 's' : ''} from members awaiting approval</div>
+            <div className="font-semibold text-emerald-900 text-xs md:text-sm">{pendingCount} LOA request{pendingCount !== 1 ? 's' : ''} from members awaiting approval</div>
           </div>
-          <button onClick={() => setFilter('Pending')} className="bg-emerald-800 hover:bg-emerald-900 text-white px-3 py-2 rounded-lg text-xs font-semibold">Review</button>
+          <button onClick={() => setFilter('Pending')} className="bg-emerald-800 hover:bg-emerald-900 text-white px-2 md:px-3 py-2 rounded-lg text-xs font-semibold flex-shrink-0">Review</button>
         </div>
       )}
 
-      <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
         {filtered.map((l, idx) => {
           const m = members.find(x => x.id === l.memberId);
           const memberSpent = m ? (soas || []).filter(s => s.memberId === m.id && s.status === 'Reviewed').reduce((sum, s) => sum + s.total, 0) : 0;
           const memberRemaining = coverageLimit - memberSpent;
           return (
-            <div key={l.id} className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl border-2 border-yellow-300 p-5 shadow-sm hover:shadow-lg transition-all animate-fadeInUp" style={{ animationDelay: `${idx * 50}ms` }}>
-              <div className="flex items-start justify-between mb-3">
+            <div key={l.id} className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl border-2 border-yellow-300 p-3 md:p-5 shadow-sm hover:shadow-lg transition-all animate-fadeInUp" style={{ animationDelay: `${idx * 50}ms` }}>
+              <div className="flex items-start justify-between mb-2 md:mb-3">
                 <div>
-                  <div className="text-xs text-yellow-800 font-bold tracking-widest uppercase">LOA #</div>
-                  <div className="font-mono text-xl font-bold text-emerald-900">{l.serialNo}</div>
+                  <div className="text-[10px] md:text-xs text-yellow-800 font-bold tracking-widest uppercase">LOA #</div>
+                  <div className="font-mono text-lg md:text-xl font-bold text-emerald-900">{l.serialNo}</div>
                 </div>
                 <StatusBadge status={l.status} />
               </div>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Member</span>
-                  <span className="font-semibold text-gray-900 truncate max-w-[180px]">{m?.name}</span>
+                  <span className="font-semibold text-gray-900 truncate max-w-[120px] md:max-w-[180px]">{m?.name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Hospital</span>
-                  <span className="font-semibold text-gray-900">{l.hospital}</span>
+                  <span className="font-semibold text-gray-900 truncate">{l.hospital}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Date Issued</span>
@@ -251,50 +255,50 @@ const LOAView = ({ loas, setLoas, consultations, members, soas, user, onMenuTogg
                     <span className={`font-semibold ${memberRemaining < 30000 ? 'text-red-700' : 'text-emerald-800'}`}>{formatPesoShort(memberRemaining)}</span>
                   </div>
                 )}
-                <div className="pt-2 border-t border-yellow-300">
-                  <div className="text-xs text-gray-600 mb-1">Procedure(s)</div>
-                  <div className="text-sm text-gray-800">{l.procedures}</div>
+                <div className="pt-1.5 md:pt-2 border-t border-yellow-300">
+                  <div className="text-[10px] md:text-xs text-gray-600 mb-1">Procedure(s)</div>
+                  <div className="text-xs md:text-sm text-gray-800">{l.procedures}</div>
                 </div>
                 {l.approvedBy && (
-                  <div className="pt-2 border-t border-yellow-300 text-xs text-gray-600">
+                  <div className="pt-1.5 md:pt-2 border-t border-yellow-300 text-[10px] md:text-xs text-gray-600">
                     <span className="font-semibold">{l.status}</span> by {l.approvedBy}
                   </div>
                 )}
               </div>
-              <div className="mt-4 pt-4 border-t border-yellow-300 flex items-end justify-between">
+              <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-yellow-300 flex items-end justify-between">
                 <div>
-                  <div className="text-xs text-gray-600">Approved Amount</div>
-                  <div className="font-display text-2xl font-bold text-emerald-900">{formatPesoShort(l.approvedAmount)}</div>
+                  <div className="text-[10px] md:text-xs text-gray-600">Approved Amount</div>
+                  <div className="font-display text-xl md:text-2xl font-bold text-emerald-900">{formatPesoShort(l.approvedAmount)}</div>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-0.5 md:gap-1 flex-wrap justify-end">
                   {/* Print: only if approved/used/completed */}
                   {(l.status === 'Approved' || l.status === 'Used' || l.status === 'Completed') ? (
-                    <button onClick={() => setPrinting(l)} className="w-9 h-9 rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 flex items-center justify-center shadow-sm" title="Print LOA">
-                      <Printer className="w-4 h-4" />
+                    <button onClick={() => setPrinting(l)} className="px-2 md:px-3 h-8 md:h-9 rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 flex items-center gap-1 shadow-sm text-xs font-semibold" title="Print LOA">
+                      <Printer className="w-3 md:w-3.5 h-3 md:h-3.5" /> <span className="hidden md:inline">Print</span>
                     </button>
                   ) : (
-                    <button disabled className="w-9 h-9 rounded-lg bg-gray-50 text-gray-300 cursor-not-allowed flex items-center justify-center shadow-sm" title="Available after approval">
-                      <Printer className="w-4 h-4" />
+                    <button disabled className="px-2 md:px-3 h-8 md:h-9 rounded-lg bg-gray-50 text-gray-300 cursor-not-allowed flex items-center gap-1 shadow-sm text-xs font-semibold" title="Available after approval">
+                      <Printer className="w-3 md:w-3.5 h-3 md:h-3.5" />
                     </button>
                   )}
                   {/* Post-LOA: member records hospital visit after LOA is Approved */}
                   {isMember && l.status === 'Approved' && (
-                    <button onClick={() => setPostLoaModal(l)} className="px-3 h-9 rounded-lg bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-1 shadow-sm text-xs font-semibold" title="Record Hospital Visit">
-                      <Activity className="w-3.5 h-3.5" /> Record Visit
+                    <button onClick={() => setPostLoaModal(l)} className="px-2 md:px-3 h-8 md:h-9 rounded-lg bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-1 shadow-sm text-xs font-semibold" title="Record Hospital Visit">
+                      <Activity className="w-3 md:w-3.5 h-3 md:h-3.5" /> <span className="hidden md:inline">Visit</span>
                     </button>
                   )}
                   {isCoordinator && (
-                    <button onClick={() => { setEditing(l); setShowModal(true); }} className="w-9 h-9 rounded-lg bg-white hover:bg-gray-50 flex items-center justify-center shadow-sm" title="Edit">
-                      <Edit className="w-4 h-4" />
+                    <button onClick={() => { setEditing(l); setShowModal(true); }} className="px-2 md:px-3 h-8 md:h-9 rounded-lg bg-white hover:bg-gray-50 text-gray-700 flex items-center gap-1 shadow-sm text-xs font-semibold" title="Edit">
+                      <Edit className="w-3 md:w-3.5 h-3 md:h-3.5" /> <span className="hidden md:inline">Edit</span>
                     </button>
                   )}
                   {canApprove && l.status === 'Pending' && (
                     <>
-                      <button onClick={() => setConfirmReject(l)} className="w-9 h-9 rounded-lg bg-white hover:bg-red-50 text-red-700 border border-red-200 flex items-center justify-center shadow-sm" title="Reject">
-                        <X className="w-4 h-4" />
+                      <button onClick={() => setConfirmReject(l)} className="w-8 md:w-9 h-8 md:h-9 rounded-lg bg-white hover:bg-red-50 text-red-700 border border-red-200 flex items-center justify-center shadow-sm" title="Reject">
+                        <X className="w-3.5 md:w-4 h-3.5 md:h-4" />
                       </button>
-                      <button onClick={() => handleApprove(l.id)} className="px-3 h-9 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white flex items-center gap-1 shadow-sm text-xs font-semibold" title="Approve">
-                        <Check className="w-4 h-4" /> Approve
+                      <button onClick={() => handleApprove(l.id)} className="px-2 md:px-3 h-8 md:h-9 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white flex items-center gap-1 shadow-sm text-xs font-semibold" title="Approve">
+                        <Check className="w-3.5 md:w-4 h-3.5 md:h-4" /> <span className="hidden md:inline">OK</span>
                       </button>
                     </>
                   )}
@@ -304,7 +308,7 @@ const LOAView = ({ loas, setLoas, consultations, members, soas, user, onMenuTogg
           );
         })}
         {filtered.length === 0 && (
-          <div className="col-span-full bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-400">No LOAs found.</div>
+          <div className="col-span-full bg-white rounded-2xl border border-gray-200 p-6 md:p-12 text-center text-gray-400 text-xs md:text-base">No LOAs found.</div>
         )}
       </div>
 

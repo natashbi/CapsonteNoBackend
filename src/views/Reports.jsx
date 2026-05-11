@@ -125,70 +125,70 @@ const ReportsView = ({ consultations, soas, members, loas, onMenuToggle }) => {
         </button>
       </TopBar>
 
-      <div className="p-8 space-y-6">
+      <div className="p-4 md:p-8 space-y-4 md:space-y-6">
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-2xl p-5 border border-gray-200">
-            <div className="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Consultations</div>
-            <div className="font-display text-3xl font-semibold text-emerald-900 mt-1">{consultations.length}</div>
-            <div className="text-xs text-gray-500 mt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 lg:gap-4">
+          <div className="bg-white rounded-2xl p-3 md:p-5 border border-gray-200">
+            <div className="text-[10px] md:text-xs text-gray-500 uppercase font-bold tracking-wider">Total Consultations</div>
+            <div className="font-display text-2xl md:text-3xl font-semibold text-emerald-900 mt-1">{consultations.length}</div>
+            <div className="text-[10px] md:text-xs text-gray-500 mt-1">
               <span className="text-emerald-700 font-semibold">{consultations.filter(c => c.status === 'Completed').length}</span> completed
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-5 border border-gray-200">
-            <div className="text-xs text-gray-500 uppercase font-bold tracking-wider">Total LOAs</div>
-            <div className="font-display text-3xl font-semibold text-emerald-900 mt-1">{loas.length}</div>
-            <div className="text-xs text-gray-500 mt-1">Approved value: {formatPesoShort(loas.filter(l=>l.status==='Approved'||l.status==='Used').reduce((s,l)=>s+l.approvedAmount,0))}</div>
+          <div className="bg-white rounded-2xl p-3 md:p-5 border border-gray-200">
+            <div className="text-[10px] md:text-xs text-gray-500 uppercase font-bold tracking-wider">Total LOAs</div>
+            <div className="font-display text-2xl md:text-3xl font-semibold text-emerald-900 mt-1">{loas.length}</div>
+            <div className="text-[10px] md:text-xs text-gray-500 mt-1">Approved: {formatPesoShort(loas.filter(l=>l.status==='Approved'||l.status==='Used').reduce((s,l)=>s+l.approvedAmount,0))}</div>
           </div>
-          <div className="bg-white rounded-2xl p-5 border border-gray-200">
-            <div className="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Expenses</div>
-            <div className="font-display text-3xl font-semibold text-emerald-900 mt-1">{formatPesoShort(totalSpent)}</div>
-            <div className="text-xs text-gray-500 mt-1">{totalBudget > 0 ? ((totalSpent/totalBudget)*100).toFixed(1) : '0.0'}% of allocation</div>
+          <div className="bg-white rounded-2xl p-3 md:p-5 border border-gray-200">
+            <div className="text-[10px] md:text-xs text-gray-500 uppercase font-bold tracking-wider">Total Expenses</div>
+            <div className="font-display text-2xl md:text-3xl font-semibold text-emerald-900 mt-1">{formatPesoShort(totalSpent)}</div>
+            <div className="text-[10px] md:text-xs text-gray-500 mt-1">{totalBudget > 0 ? ((totalSpent/totalBudget)*100).toFixed(1) : '0.0'}% of allocation</div>
           </div>
-          <div className="bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl p-5 text-white">
-            <div className="text-xs text-emerald-200 uppercase font-bold tracking-wider">Available Budget</div>
-            <div className="font-display text-3xl font-semibold mt-1">{formatPesoShort(totalBudget - totalSpent)}</div>
-            <div className="text-xs text-emerald-200 mt-1">of {formatPesoShort(totalBudget)} total</div>
+          <div className="bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl p-3 md:p-5 text-white">
+            <div className="text-[10px] md:text-xs text-emerald-200 uppercase font-bold tracking-wider">Available Budget</div>
+            <div className="font-display text-2xl md:text-3xl font-semibold mt-1">{formatPesoShort(totalBudget - totalSpent)}</div>
+            <div className="text-[10px] md:text-xs text-emerald-200 mt-1">of {formatPesoShort(totalBudget)} total</div>
           </div>
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="bg-white rounded-2xl p-6 border border-gray-200">
-            <h3 className="font-display text-xl font-semibold text-emerald-900 mb-4">Consultation Volume</h3>
-            <ResponsiveContainer width="100%" height={260}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+          <div className="bg-white rounded-2xl p-4 md:p-6 border border-gray-200">
+            <h3 className="font-display text-lg md:text-xl font-semibold text-emerald-900 mb-3 md:mb-4">Consultation Volume</h3>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="label" stroke="#9ca3af" fontSize={11} />
-                <YAxis stroke="#9ca3af" fontSize={11} />
+                <XAxis dataKey="label" stroke="#9ca3af" fontSize={10} />
+                <YAxis stroke="#9ca3af" fontSize={10} />
                 <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb' }} />
                 <Bar dataKey="consultations" fill="#166534" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="bg-white rounded-2xl p-6 border border-gray-200">
-            <h3 className="font-display text-xl font-semibold text-emerald-900 mb-4">Expense Trends</h3>
-            <ResponsiveContainer width="100%" height={260}>
+          <div className="bg-white rounded-2xl p-4 md:p-6 border border-gray-200">
+            <h3 className="font-display text-lg md:text-xl font-semibold text-emerald-900 mb-3 md:mb-4">Expense Trends</h3>
+            <ResponsiveContainer width="100%" height={200}>
               <LineChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="label" stroke="#9ca3af" fontSize={11} />
-                <YAxis stroke="#9ca3af" fontSize={11} tickFormatter={v => '₱' + (v/1000).toFixed(0) + 'k'} />
+                <XAxis dataKey="label" stroke="#9ca3af" fontSize={10} />
+                <YAxis stroke="#9ca3af" fontSize={10} tickFormatter={v => '₱' + (v/1000).toFixed(0) + 'k'} />
                 <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb' }} formatter={v => formatPeso(v)} />
-                <Line type="monotone" dataKey="expenses" stroke="#eab308" strokeWidth={3} dot={{ r: 4, fill: '#eab308' }} />
+                <Line type="monotone" dataKey="expenses" stroke="#eab308" strokeWidth={2} dot={{ r: 3, fill: '#eab308' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Last 6 months trend */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-200">
-          <h3 className="font-display text-xl font-semibold text-emerald-900 mb-1">Last 6 Months Activity</h3>
-          <p className="text-sm text-gray-500 mb-4">Rolling 6-month view from today</p>
-          <ResponsiveContainer width="100%" height={220}>
+        <div className="bg-white rounded-2xl p-4 md:p-6 border border-gray-200">
+          <h3 className="font-display text-lg md:text-xl font-semibold text-emerald-900 mb-1">Last 6 Months Activity</h3>
+          <p className="text-xs md:text-sm text-gray-500 mb-3 md:mb-4">Rolling 6-month view from today</p>
+          <ResponsiveContainer width="100%" height={180}>
             <BarChart data={last6Months}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="label" stroke="#9ca3af" fontSize={11} />
-              <YAxis stroke="#9ca3af" fontSize={11} />
+              <XAxis dataKey="label" stroke="#9ca3af" fontSize={10} />
+              <YAxis stroke="#9ca3af" fontSize={10} />
               <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb' }} />
               <Bar dataKey="consultations" fill="#166534" radius={[6, 6, 0, 0]} />
             </BarChart>
@@ -197,23 +197,23 @@ const ReportsView = ({ consultations, soas, members, loas, onMenuToggle }) => {
 
         {/* Top Members */}
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <h3 className="font-display text-xl font-semibold text-emerald-900">Top 5 Members by Expenses</h3>
+          <div className="p-4 md:p-6 border-b border-gray-100">
+            <h3 className="font-display text-lg md:text-xl font-semibold text-emerald-900">Top 5 Members by Expenses</h3>
           </div>
           <div className="divide-y divide-gray-100">
             {topMembers.map((m, i) => (
-              <div key={m.id} className="p-4 flex items-center gap-4">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-sm flex items-center justify-center">{i+1}</div>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-emerald-900 font-bold text-sm">
+              <div key={m.id} className="p-3 md:p-4 flex items-center gap-2 md:gap-4">
+                <div className="w-7 md:w-8 h-7 md:h-8 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs md:text-sm flex items-center justify-center flex-shrink-0">{i+1}</div>
+                <div className="w-9 md:w-10 h-9 md:h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-emerald-900 font-bold text-xs md:text-sm flex-shrink-0">
                   {getInitials(m.name)}
                 </div>
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">{m.name}</div>
-                  <div className="text-xs text-gray-500">{m.department} • {m.consultCount} consultations</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 text-xs md:text-base truncate">{m.name}</div>
+                  <div className="text-[10px] md:text-xs text-gray-500 truncate">{m.department} • {m.consultCount}</div>
                 </div>
-                <div className="text-right">
-                  <div className="font-display text-xl font-semibold text-emerald-900">{formatPesoShort(m.totalSpent)}</div>
-                  <div className="text-xs text-gray-500">{coverageLimit > 0 ? ((m.totalSpent/coverageLimit)*100).toFixed(1) : '0.0'}% of limit</div>
+                <div className="text-right flex-shrink-0">
+                  <div className="font-display text-lg md:text-xl font-semibold text-emerald-900">{formatPesoShort(m.totalSpent)}</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">{coverageLimit > 0 ? ((m.totalSpent/coverageLimit)*100).toFixed(1) : '0.0'}%</div>
                 </div>
               </div>
             ))}

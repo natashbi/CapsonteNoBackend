@@ -42,8 +42,8 @@ const MemberApprovalsView = ({ members, user, onApprove, onReject, onMenuToggle 
       <TopBar title="Member Approvals" subtitle="Review and verify permanent employee registrations" onMenuToggle={onMenuToggle} />
 
       {/* Summary tabs */}
-      <div className="px-8 pt-6">
-        <div className="flex gap-2">
+      <div className="px-4 md:px-8 pt-6 overflow-x-auto">
+        <div className="flex gap-2 min-w-min">
           {[
             { key: 'Pending', label: 'Pending', count: pendingCount, color: 'yellow' },
             { key: 'Approved', label: 'Approved', count: approvedCount, color: 'emerald' },
@@ -86,9 +86,9 @@ const MemberApprovalsView = ({ members, user, onApprove, onReject, onMenuToggle 
         </div>
       )}
 
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-16 text-center">
             <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-3">
               <UserCheck className="w-7 h-7 text-gray-400" />
             </div>

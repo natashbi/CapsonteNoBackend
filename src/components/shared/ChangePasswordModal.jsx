@@ -26,16 +26,16 @@ const ChangePasswordModal = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-6">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 md:p-6 backdrop-blur-sm" style={{ zIndex: 99999 }}>
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <div>
+        <div className="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex-1">
             <h3 className="font-display text-lg font-semibold text-emerald-900">Change Password</h3>
             <p className="text-xs text-gray-500 mt-0.5">Minimum 8 characters</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 text-xl leading-none">×</button>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 text-xl leading-none flex-shrink-0 ml-2 touch-target">×</button>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-4 md:p-6 space-y-4">
           {success ? (
             <div className="text-center py-4">
               <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -65,9 +65,9 @@ const ChangePasswordModal = ({ onClose }) => {
           )}
         </div>
         {!success && (
-          <div className="p-6 pt-0 flex gap-3">
-            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50">Cancel</button>
-            <button onClick={handleSubmit} disabled={saving} className="flex-1 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-sm font-semibold disabled:opacity-60">
+          <div className="p-4 md:p-6 pt-0 flex gap-3 flex-col-reverse sm:flex-row">
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 touch-target">Cancel</button>
+            <button onClick={handleSubmit} disabled={saving} className="flex-1 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-sm font-semibold disabled:opacity-60 touch-target">
               {saving ? 'Saving...' : 'Update Password'}
             </button>
           </div>

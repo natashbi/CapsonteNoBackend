@@ -32,11 +32,11 @@ const ConfirmModal = ({
             />
           </div>
         )}
-        <div className="flex gap-2 justify-end">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-xl font-medium">Cancel</button>
+        <div className="flex gap-2 justify-end flex-col-reverse sm:flex-row">
+          <button onClick={onClose} className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 rounded-xl font-medium touch-target flex-1 sm:flex-none">Cancel</button>
           <button
             onClick={() => { onConfirm(withReason ? reason : undefined); onClose(); }}
-            className={`px-4 py-2 text-sm text-white rounded-xl font-semibold ${confirmColor === 'red' ? 'bg-red-600 hover:bg-red-700' : 'bg-yellow-500 hover:bg-yellow-600 text-emerald-900'}`}
+            className={`px-4 py-2.5 text-sm text-white rounded-xl font-semibold touch-target flex-1 sm:flex-none ${confirmColor === 'red' ? 'bg-red-600 hover:bg-red-700' : 'bg-yellow-500 hover:bg-yellow-600 text-emerald-900'}`}
           >
             {confirmLabel}
           </button>

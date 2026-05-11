@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import {
   Search, Plus, Edit, Printer, X, Check, CheckCircle2, Trash2,
   FileUp, FileCheck, FileText, Upload, AlertCircle, Sparkles,
-  ShieldCheck, Activity, Clock, Heart
+  ShieldCheck, Activity, Clock, Heart, Download
 } from 'lucide-react';
 import { useToast } from '../components/shared/Toast.jsx';
 import TopBar from '../components/TopBar.jsx';
@@ -57,8 +57,10 @@ const ConsultationsView = ({ consultations, setConsultations, members, user, onM
         const updated = await api.updateConsultation(editing.id, data);
         setConsultations(prev => prev.map(c => c.id === editing.id ? updated : c));
       } else {
+        const serialNo = generateSerialNo('C', consultations);
         const created = await api.createConsultation({
           ...data,
+          serialNo: serialNo,
           status: 'Pending',
           requestedBy: isMember ? user.name : null,
           documentUploaded: false,
@@ -125,8 +127,22 @@ const ConsultationsView = ({ consultations, setConsultations, members, user, onM
     setConfirmDelete(null);
   };
 
+  const handlePrintConsultation = async (id) => {
+    try {
+      const updated = await api.updateConsultation(id, {
+        printedAt: new Date().toISOString(),
+      });
+      setConsultations(prev => prev.map(c => c.id === id ? updated : c));
+    } catch (err) {
+      toast(err.message || 'Failed to update print status', 'error');
+    }
+  };
+
   const handleUploadDoc = async (id, fileName, documentData) => {
     try {
+      const consultation = consultations.find(c => c.id === id);
+      const member = members.find(m => m.id === consultation?.memberId);
+      
       const updated = await api.updateConsultation(id, {
         documentUploaded: true,
         documentName: fileName,
@@ -134,6 +150,19 @@ const ConsultationsView = ({ consultations, setConsultations, members, user, onM
         documentUploadedAt: new Date().toISOString(),
       });
       setConsultations(prev => prev.map(c => c.id === id ? updated : c));
+      
+      // Create notification for coordinator
+      if (consultation && member) {
+        await api.createNotification({
+          type: 'document_upload',
+          title: 'New Document Upload',
+          message: `${member.name} has uploaded a consultation document (Consultation #${consultation.serialNo})`,
+          recipientRole: 'coordinator',
+          relatedConsultationId: id,
+          relatedMemberId: consultation.memberId,
+        });
+      }
+      
       toast('Document uploaded successfully.', 'success');
     } catch (err) {
       toast(err.message || 'Failed to upload document', 'error');
@@ -150,7 +179,7 @@ const ConsultationsView = ({ consultations, setConsultations, members, user, onM
       >
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." className="w-56 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." className="w-full md:w-56 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600" />
         </div>
         <select value={filter} onChange={e => setFilter(e.target.value)} className="px-4 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none">
           <option>All</option><option>Pending</option><option>Approved</option><option>Completed</option><option>Rejected</option>
@@ -202,14 +231,14 @@ const ConsultationsView = ({ consultations, setConsultations, members, user, onM
         </div>
       )}
 
-      <div className="p-8">
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+      <div className="p-2 md:p-8">
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm overflow-x-auto">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gradient-to-r from-emerald-50 to-yellow-50">
                 <tr>
-                  {['Serial', 'Patient', 'Date', 'Type', 'Diagnosis', 'Doc', 'Status', 'Actions'].map(h => (
-                    <th key={h} className="text-left text-xs font-bold text-emerald-900 uppercase tracking-wider px-5 py-4">{h}</th>
+                  {['Serial', 'Patient', 'Date', 'Type', 'Diagnosis', 'Doc', 'Status', 'Action'].map(h => (
+                    <th key={h} className={`text-left font-bold text-emerald-900 uppercase tracking-wider px-2 md:px-5 py-3 md:py-4 text-[10px] md:text-xs ${h === 'Diagnosis' ? 'hidden md:table-cell' : ''}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -218,102 +247,71 @@ const ConsultationsView = ({ consultations, setConsultations, members, user, onM
                   const m = members.find(x => x.id === c.memberId);
                   const d = m?.dependents?.find(x => x.id === c.dependentId);
                   const canPrint = c.status === 'Approved' || c.status === 'Completed';
-                  const canUploadDoc = (c.status === 'Approved' || c.status === 'Completed') && !c.documentUploaded;
+                  const canUploadDoc = (c.status === 'Approved' || c.status === 'Completed') && !c.documentUploaded && c.printedAt;
                   return (
                     <tr key={c.id} className="hover:bg-gray-50 transition-colors animate-fadeInUp" style={{ animationDelay: `${idx * 30}ms` }}>
-                      <td className="px-5 py-4">
-                        <div className="font-mono text-sm font-semibold text-emerald-900">#{c.serialNo}</div>
-                        <div className="text-xs text-gray-400">{new Date(c.createdAt).toLocaleDateString()}</div>
+                      <td className="px-2 md:px-5 py-2 md:py-4">
+                        <div className="font-mono text-xs md:text-sm font-semibold text-emerald-900">#{c.serialNo}</div>
+                        <div className="text-[10px] text-gray-400">{new Date(c.createdAt).toLocaleDateString()}</div>
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="font-medium text-gray-900 text-sm">{d ? d.name : m?.name}</div>
-                        {d && <div className="text-xs text-yellow-700 bg-yellow-50 inline-block px-2 py-0.5 rounded mt-0.5">Dep. of {m?.name}</div>}
-                        {!d && <div className="text-xs text-gray-500">{m?.employeeId}</div>}
+                      <td className="px-2 md:px-5 py-2 md:py-4">
+                        <div className="font-medium text-gray-900 text-xs md:text-sm">{d ? d.name : m?.name}</div>
+                        {d && <div className="text-[9px] text-yellow-700 bg-yellow-50 inline-block px-1.5 py-0.5 rounded mt-0.5">Dep. of {m?.name}</div>}
+                        {!d && <div className="text-[9px] text-gray-500">{m?.employeeId}</div>}
                       </td>
-                      <td className="px-5 py-4 text-sm text-gray-700">{formatDate(c.date)}</td>
-                      <td className="px-5 py-4"><PatientTypeBadge type={c.patientType} /></td>
-                      <td className="px-5 py-4 text-sm text-gray-700 max-w-xs truncate">{c.diagnosis || <span className="text-gray-400 italic">Not yet diagnosed</span>}</td>
-                      <td className="px-5 py-4">
+                      <td className="px-2 md:px-5 py-2 md:py-4 text-xs md:text-sm text-gray-700 whitespace-nowrap">{formatDate(c.date)}</td>
+                      <td className="px-2 md:px-5 py-2 md:py-4"><PatientTypeBadge type={c.patientType} /></td>
+                      <td className="px-2 md:px-5 py-2 md:py-4 text-xs text-gray-700 max-w-xs truncate hidden md:table-cell">{c.diagnosis || <span className="text-gray-400 italic">Not yet diagnosed</span>}</td>
+                      <td className="px-2 md:px-5 py-2 md:py-4">
                         {c.documentUploaded ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-800" title={c.documentName}>
-                            <FileCheck className="w-3 h-3" /> Uploaded
+                          <span className="inline-flex items-center gap-1 text-[9px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded-full bg-emerald-100 text-emerald-800" title={c.documentName}>
+                            <FileCheck className="w-2.5 md:w-3 h-2.5 md:h-3" /> Uploaded
                           </span>
                         ) : (
-                          <span className="text-[10px] text-gray-400 italic">Not yet</span>
+                          <span className="text-[9px] md:text-[10px] text-gray-400 italic">Not yet</span>
                         )}
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-1.5 flex-wrap">
+                      <td className="px-2 md:px-5 py-2 md:py-4">
+                        <div className="flex items-center gap-1 md:gap-1.5 flex-wrap">
                           <StatusBadge status={c.status} />
                           {!isMember && c.status === 'Approved' && !c.documentUploaded && (
-                            <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full border border-amber-200">No Doc</span>
+                            <span className="text-[8px] md:text-[9px] font-bold bg-amber-100 text-amber-700 px-1 md:px-1.5 py-0.5 rounded-full border border-amber-200 whitespace-nowrap">No Doc</span>
                           )}
                         </div>
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-1">
-                          {/* Print: only if approved/completed */}
-                          {canPrint ? (
-                            <button onClick={() => setPrinting(c)} className="w-8 h-8 rounded-lg hover:bg-emerald-50 text-emerald-700 flex items-center justify-center" title="Print consultation slip">
-                              <Printer className="w-4 h-4" />
-                            </button>
-                          ) : (
-                            <button disabled className="w-8 h-8 rounded-lg text-gray-300 cursor-not-allowed flex items-center justify-center" title="Available after coordinator approval">
-                              <Printer className="w-4 h-4" />
-                            </button>
-                          )}
-
-                          {/* View document button */}
-                          {c.documentUploaded && c.documentData && (
-                            <button
-                              onClick={() => {
-                                const tab = window.open();
-                                tab.document.write(`<iframe src="${c.documentData}" style="width:100%;height:100vh;border:0"></iframe>`);
-                              }}
-                              className="w-8 h-8 rounded-lg hover:bg-blue-50 text-blue-700 flex items-center justify-center"
-                              title="View Document"
-                            >
-                              <FileText className="w-4 h-4" />
-                            </button>
-                          )}
-
-                          {/* Member: upload consultation document (after approved) */}
-                          {isMember && canUploadDoc && (
-                            <button
-                              onClick={() => setUploadingDoc(c)}
-                              className="px-2.5 h-8 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-emerald-900 flex items-center gap-1 text-xs font-semibold"
-                              title="Upload completed consultation document"
-                            >
-                              <FileUp className="w-3.5 h-3.5" /> Upload
-                            </button>
-                          )}
+                      <td className="px-2 md:px-5 py-2 md:py-4">
+                        <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+                          {/* Main Print button */}
+                          <button
+                            onClick={() => setPrinting(c)}
+                            disabled={!canPrint}
+                            className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg font-semibold text-xs md:text-sm transition-colors ${
+                              canPrint
+                                ? 'bg-emerald-800 hover:bg-emerald-900 text-white shadow-sm'
+                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            }`}
+                            title={canPrint ? 'Print consultation slip' : 'Available after coordinator approval'}
+                          >
+                            <Printer className="w-3 md:w-4 h-3 md:h-4" />
+                            <span className="hidden md:inline">Print</span>
+                          </button>
 
                           {/* Coordinator: Approve/Reject pending */}
                           {isCoordinator && c.status === 'Pending' && (
                             <>
-                              <button onClick={() => setConfirmReject(c)} className="w-8 h-8 rounded-lg hover:bg-red-50 text-red-700 flex items-center justify-center" title="Reject">
-                                <X className="w-4 h-4" />
+                              <button onClick={() => setConfirmReject(c)} className="w-6 md:w-8 h-6 md:h-8 rounded-lg hover:bg-red-50 text-red-700 flex items-center justify-center" title="Reject">
+                                <X className="w-3 md:w-4 h-3 md:h-4" />
                               </button>
-                              <button onClick={() => handleApprove(c.id)} className="px-2.5 h-8 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white flex items-center gap-1 text-xs font-semibold" title="Approve">
-                                <Check className="w-3.5 h-3.5" /> Approve
+                              <button onClick={() => handleApprove(c.id)} className="px-1.5 md:px-2.5 h-6 md:h-8 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white flex items-center gap-0.5 md:gap-1 text-[10px] md:text-xs font-semibold" title="Approve">
+                                <Check className="w-3 md:w-3.5 h-3 md:h-3.5" /> <span className="hidden md:inline">Approve</span>
                               </button>
                             </>
                           )}
+
+                          {/* Coordinator: Complete button for approved consultations */}
                           {isCoordinator && c.status === 'Approved' && (
-                            <button onClick={() => handleComplete(c.id)} className="px-2.5 h-8 rounded-lg bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-1 text-xs font-semibold">
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Complete
-                            </button>
-                          )}
-                          {/* Edit only for coordinator in non-final states */}
-                          {isCoordinator && c.status === 'Approved' && (
-                            <button onClick={() => { setEditing(c); setShowModal(true); }} className="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-700 flex items-center justify-center" title="Edit">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                          )}
-                          {/* Delete: Pending only, coordinator/admin */}
-                          {isCoordinator && c.status === 'Pending' && (
-                            <button onClick={() => setConfirmDelete(c)} className="w-8 h-8 rounded-lg hover:bg-red-50 text-red-600 flex items-center justify-center" title="Delete pending consultation">
-                              <Trash2 className="w-3.5 h-3.5" />
+                            <button onClick={() => handleComplete(c.id)} className="px-1.5 md:px-2.5 h-6 md:h-8 rounded-lg bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-0.5 md:gap-1 text-[10px] md:text-xs font-semibold">
+                              <CheckCircle2 className="w-3 md:w-3.5 h-3 md:h-3.5" /> <span className="hidden md:inline">Complete</span>
                             </button>
                           )}
                         </div>
@@ -333,7 +331,7 @@ const ConsultationsView = ({ consultations, setConsultations, members, user, onM
       </div>
 
       {showModal && <ConsultationFormModal consultation={editing} members={members} consultations={consultations} user={user} onSave={handleSave} onClose={() => { setShowModal(false); setEditing(null); }} saving={saving} />}
-      {printing && <ConsultationPrintModal consultation={printing} member={members.find(m => m.id === printing.memberId)} dependent={members.find(m => m.id === printing.memberId)?.dependents?.find(d => d.id === printing.dependentId)} onClose={() => setPrinting(null)} />}
+      {printing && <ConsultationPrintModal consultation={printing} member={members.find(m => m.id === printing.memberId)} dependent={members.find(m => m.id === printing.memberId)?.dependents?.find(d => d.id === printing.dependentId)} onClose={() => setPrinting(null)} onPrinted={handlePrintConsultation} />}
       {uploadingDoc && <DocumentUploadModal consultation={uploadingDoc} onSave={(fileName, documentData) => handleUploadDoc(uploadingDoc.id, fileName, documentData)} onClose={() => setUploadingDoc(null)} />}
       {confirmReject && (
         <ConfirmModal
@@ -396,6 +394,10 @@ const DocumentUploadModal = ({ consultation, onSave, onClose }) => {
           <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6 space-y-4">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900 flex items-start gap-2">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-700" />
+            <div><strong>✓ Consultation form has been printed.</strong></div>
+          </div>
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-xs text-yellow-900 flex items-start gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <div>Please upload the completed consultation document from your attending physician. This is required before you can request an LOA.</div>
@@ -481,9 +483,58 @@ const ConsultationFormModal = ({ consultation, members, consultations, user, onS
     }
   }, [form, consultations, isDep, consultation, memberConsultLimit, dependentConsultLimit]);
 
+  // Validate Chief Complaints — requires symptom duration of at least 3 days.
+  // Returns { ok: boolean, reason?: string } so the caller can show a specific message.
+  const validateChiefComplaints = (complaints) => {
+    if (!complaints || complaints.trim() === '') {
+      return { ok: false, reason: 'Please describe your symptoms and how long you have had them (e.g., "Fever for 3 days").' };
+    }
+
+    const text = complaints.toLowerCase();
+
+    // Phrases that imply <3 day onset, reject regardless of unit
+    const sameDayPhrases = ['since yesterday', 'started today', 'this morning', 'today only', 'just started', 'few hours'];
+    if (sameDayPhrases.some(p => text.includes(p))) {
+      return { ok: false, reason: 'Symptoms must be at least 3 days old. Phrases like "since yesterday" or "started today" are not yet eligible. Please come back if symptoms persist.' };
+    }
+
+    // Find numeric durations: "1 day", "2 days", "1 week", "2 months"
+    const matches = [...text.matchAll(/(\d+(?:\.\d+)?)\s*(day|days|week|weeks|wk|wks|month|months|mo|mos|hour|hours|hr|hrs)/g)];
+    if (matches.length === 0) {
+      return { ok: false, reason: 'Please specify how long you have had the symptoms (e.g., "Fever for 3 days", "Cough for 1 week").' };
+    }
+
+    const inDays = (n, unit) => {
+      const u = unit.toLowerCase();
+      if (u.startsWith('hour') || u === 'hr' || u === 'hrs') return n / 24;
+      if (u.startsWith('day')) return n;
+      if (u.startsWith('week') || u === 'wk' || u === 'wks') return n * 7;
+      if (u.startsWith('month') || u === 'mo' || u === 'mos') return n * 30;
+      return n;
+    };
+
+    // Use the LONGEST mentioned duration (so "fever for 3 days, started today" still passes the 3-day rule)
+    const maxDays = Math.max(...matches.map(m => inDays(parseFloat(m[1]), m[2])));
+    if (maxDays < 3) {
+      return { ok: false, reason: `Symptoms must be at least 3 days old. You indicated approximately ${maxDays.toFixed(0)} day${maxDays === 1 ? '' : 's'}. Please come back if symptoms persist.` };
+    }
+
+    return { ok: true };
+  };
+
   const handleSubmit = () => {
     if (!form.memberId || !form.date) { alert('Please select a member and date'); return; }
     if (isDep && !form.dependentId) { alert('Please select a dependent'); return; }
+    
+    // Validate Chief Complaints for members
+    if (isMember) {
+      const check = validateChiefComplaints(form.chiefComplaints);
+      if (!check.ok) {
+        alert(check.reason);
+        return;
+      }
+    }
+    
     if (limitInfo && limitInfo.count >= limitInfo.limit) {
       if (!window.confirm(`Warning: ${limitInfo.label} has reached annual consultation limit (${limitInfo.limit}). Continue anyway?`)) return;
     }
@@ -548,7 +599,14 @@ const ConsultationFormModal = ({ consultation, members, consultations, user, onS
 
         <Field label="Patient Type" select options={['Consultation', 'Outpatient', 'Inpatient', 'Emergency']} value={form.patientType} onChange={v => setForm({...form, patientType: v})} />
 
-        <Field label="Chief Complaints" textarea value={form.chiefComplaints} onChange={v => setForm({...form, chiefComplaints: v})} placeholder={isMember ? 'Describe your symptoms or reason for consultation' : ''} />
+        <div>
+          <Field label="Chief Complaints" textarea value={form.chiefComplaints} onChange={v => setForm({...form, chiefComplaints: v})} placeholder={isMember ? 'Describe your symptoms or reason for consultation' : ''} />
+          {isMember && (
+            <div className="mt-2 text-xs text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-2">
+              <strong>✓ Important:</strong> Please specify the duration of your symptoms. Symptoms must be at least 3 days old. Examples: "Fever for 5 days", "Persistent cough for 1 week", "Body ache for 4 days", etc.
+            </div>
+          )}
+        </div>
 
         {/* Members cannot fill in medical findings — those are entered by physician/coordinator */}
         {!isMember && (
@@ -576,8 +634,13 @@ const ConsultationFormModal = ({ consultation, members, consultations, user, onS
 };
 
 // ============ CONSULTATION PRINT ============
-const ConsultationPrintModal = ({ consultation, member, dependent, onClose }) => {
-  const handlePrint = () => window.print();
+const ConsultationPrintModal = ({ consultation, member, dependent, onClose, onPrinted }) => {
+  const handlePrint = () => {
+    if (onPrinted) {
+      onPrinted(consultation.id);
+    }
+    window.print();
+  };
   return (
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-auto">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">

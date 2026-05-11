@@ -103,7 +103,7 @@ const AdminUserManagementView = ({ systemUsers, setSystemUsers, members, onMenuT
       <TopBar title="User Management" subtitle="Manage system users, roles, and access" onMenuToggle={onMenuToggle}>
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users..." className="w-56 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users..." className="w-full md:w-56 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600" />
         </div>
         <select value={filter} onChange={e => setFilter(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:border-emerald-600">
           <option>All</option><option>Admin</option><option>Coordinator</option><option>Director</option><option>Member</option>
@@ -113,36 +113,36 @@ const AdminUserManagementView = ({ systemUsers, setSystemUsers, members, onMenuT
         </button>
       </TopBar>
 
-      <div className="p-8 pb-0 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="p-4 md:p-8 pb-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 lg:gap-4">
         {['admin','coordinator','director','member'].map(r => {
           const count = systemUsers.filter(u => u.role === r).length;
           const active = systemUsers.filter(u => u.role === r && u.active).length;
           const Icon = roleIcon(r);
           return (
-            <div key={r} className="bg-white rounded-2xl border border-gray-200 p-4">
+            <div key={r} className="bg-white rounded-2xl border border-gray-200 p-3 md:p-4">
               <div className="flex items-center justify-between">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${roleChip(r)}`}><Icon className="w-5 h-5" /></div>
-                <div className="text-xs text-gray-500 font-semibold">{active}/{count} active</div>
+                <div className={`w-9 md:w-10 h-9 md:h-10 rounded-lg flex items-center justify-center ${roleChip(r)}`}><Icon className="w-4 md:w-5 h-4 md:h-5" /></div>
+                <div className="text-[10px] md:text-xs text-gray-500 font-semibold">{active}/{count}</div>
               </div>
-              <div className="font-display text-2xl font-semibold text-emerald-900 mt-3">{count}</div>
-              <div className="text-xs text-gray-500 capitalize">{r}s</div>
+              <div className="font-display text-xl md:text-2xl font-semibold text-emerald-900 mt-2 md:mt-3">{count}</div>
+              <div className="text-[10px] md:text-xs text-gray-500 capitalize">{r}s</div>
             </div>
           );
         })}
       </div>
 
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">User</th>
-                  <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">Username</th>
-                  <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">Role</th>
-                  <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">Last Login</th>
-                  <th className="text-left text-xs font-bold text-gray-500 uppercase px-6 py-3">Status</th>
-                  <th className="text-right text-xs font-bold text-gray-500 uppercase px-6 py-3">Actions</th>
+                  <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3">User</th>
+                  <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3 hidden md:table-cell">Username</th>
+                  <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3">Role</th>
+                  <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3 hidden lg:table-cell">Last Login</th>
+                  <th className="text-left text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3">Status</th>
+                  <th className="text-right text-[10px] md:text-xs font-bold text-gray-500 uppercase px-2 md:px-6 py-2 md:py-3">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -150,42 +150,42 @@ const AdminUserManagementView = ({ systemUsers, setSystemUsers, members, onMenuT
                   const Icon = roleIcon(u.role);
                   return (
                     <tr key={u.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-700 to-emerald-900 flex items-center justify-center text-yellow-300 font-bold text-xs overflow-hidden">
+                      <td className="px-2 md:px-6 py-3">
+                        <div className="flex items-center gap-2 md:gap-3">
+                          <div className="w-8 md:w-9 h-8 md:h-9 rounded-full bg-gradient-to-br from-emerald-700 to-emerald-900 flex items-center justify-center text-yellow-300 font-bold text-xs overflow-hidden flex-shrink-0">
                             {u.photo
                               ? <img src={u.photo} alt="" className="w-full h-full object-cover" />
                               : getInitials(u.name)
                             }
                           </div>
-                          <div>
-                            <div className="font-medium text-gray-900 text-sm">{u.name}</div>
-                            <div className="text-xs text-gray-500">{u.email}</div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-gray-900 text-xs md:text-sm truncate">{u.name}</div>
+                            <div className="text-[9px] md:text-xs text-gray-500 truncate">{u.email}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-mono text-xs text-gray-700">{u.username}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full ${roleChip(u.role)}`}>
-                          <Icon className="w-3 h-3" /> {u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                      <td className="px-2 md:px-6 py-3 font-mono text-xs text-gray-700 hidden md:table-cell">{u.username}</td>
+                      <td className="px-2 md:px-6 py-3">
+                        <span className={`inline-flex items-center gap-0.5 md:gap-1 text-[9px] md:text-[11px] font-bold px-1.5 md:px-2 py-1 rounded-full whitespace-nowrap ${roleChip(u.role)}`}>
+                          <Icon className="w-2.5 md:w-3 h-2.5 md:h-3" /> <span className="hidden md:inline">{u.role.charAt(0).toUpperCase() + u.role.slice(1)}</span><span className="md:hidden">{u.role.charAt(0).toUpperCase()}</span>
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-600">{u.lastLogin ? formatDate(u.lastLogin) : 'Never'}</td>
-                      <td className="px-6 py-4">
-                        <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${u.active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700'}`}>
+                      <td className="px-2 md:px-6 py-3 text-[10px] md:text-xs text-gray-600 hidden lg:table-cell">{u.lastLogin ? formatDate(u.lastLogin) : 'Never'}</td>
+                      <td className="px-2 md:px-6 py-3">
+                        <span className={`text-[9px] md:text-[11px] font-bold px-1.5 md:px-2 py-1 rounded-full whitespace-nowrap ${u.active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700'}`}>
                           {u.active ? 'Active' : 'Disabled'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="inline-flex gap-1">
-                          <button onClick={() => handleToggleActive(u.id)} className="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-600 flex items-center justify-center" title={u.active ? 'Disable account' : 'Enable account'}>
-                            <Lock className="w-4 h-4" />
+                      <td className="px-2 md:px-6 py-3 text-right">
+                        <div className="inline-flex gap-0.5 md:gap-1">
+                          <button onClick={() => handleToggleActive(u.id)} className="w-7 md:w-8 h-7 md:h-8 rounded-lg hover:bg-gray-100 text-gray-600 flex items-center justify-center flex-shrink-0" title={u.active ? 'Disable account' : 'Enable account'}>
+                            <Lock className="w-3.5 md:w-4 h-3.5 md:h-4" />
                           </button>
-                          <button onClick={() => { setEditing(u); setShowModal(true); }} className="w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-600 flex items-center justify-center" title="Edit">
-                            <Edit className="w-4 h-4" />
+                          <button onClick={() => { setEditing(u); setShowModal(true); }} className="w-7 md:w-8 h-7 md:h-8 rounded-lg hover:bg-gray-100 text-gray-600 flex items-center justify-center flex-shrink-0" title="Edit">
+                            <Edit className="w-3.5 md:w-4 h-3.5 md:h-4" />
                           </button>
-                          <button onClick={() => setConfirmDelete(u)} className="w-8 h-8 rounded-lg hover:bg-red-50 text-red-600 flex items-center justify-center" title="Delete">
-                            <Trash2 className="w-4 h-4" />
+                          <button onClick={() => setConfirmDelete(u)} className="w-7 md:w-8 h-7 md:h-8 rounded-lg hover:bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0" title="Delete">
+                            <Trash2 className="w-3.5 md:w-4 h-3.5 md:h-4" />
                           </button>
                         </div>
                       </td>
@@ -193,7 +193,7 @@ const AdminUserManagementView = ({ systemUsers, setSystemUsers, members, onMenuT
                   );
                 })}
                 {filtered.length === 0 && (
-                  <tr><td colSpan={6} className="p-12 text-center text-gray-400">No users found.</td></tr>
+                  <tr><td colSpan={6} className="p-6 md:p-12 text-center text-gray-400 text-xs md:text-base">No users found.</td></tr>
                 )}
               </tbody>
             </table>

@@ -9,31 +9,31 @@ const TopBar = ({ title, subtitle, children, alerts = [], onMenuToggle }) => {
   const allAlerts = [...contextAlerts, ...alerts];
 
   return (
-    <div className="bg-white border-b border-gray-200 px-8 py-5 sticky top-0 z-30">
-      <div className="flex items-center justify-between gap-6">
-        <div className="flex items-center gap-2 min-w-0">
+    <div className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 md:py-5 sticky top-0 z-30">
+      <div className="flex items-center justify-between gap-3 md:gap-6 flex-wrap md:flex-nowrap">
+        <div className="flex items-center gap-2 min-w-0 w-full md:w-auto">
           {/* Hamburger menu — mobile only */}
           {onMenuToggle && (
             <button
               onClick={onMenuToggle}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 mr-2 flex-shrink-0"
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 mr-1 flex-shrink-0 touch-target"
             >
               <Menu className="w-5 h-5 text-gray-700" />
             </button>
           )}
           <div className="min-w-0">
-            <h1 className="font-display text-3xl font-semibold text-emerald-900 tracking-tight truncate">{title}</h1>
-            {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+            <h1 className="font-display text-2xl md:text-3xl font-semibold text-emerald-900 tracking-tight truncate">{title}</h1>
+            {subtitle && <p className="text-xs md:text-sm text-gray-500 mt-1 hidden sm:block">{subtitle}</p>}
           </div>
         </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 w-full md:w-auto md:justify-end overflow-x-auto md:overflow-visible pb-2 md:pb-0">
           {children}
 
           {/* Notification bell — only top-right action; profile actions live in the sidebar */}
           <div className="relative">
             <button
               onClick={() => setShowAlerts(!showAlerts)}
-              className="relative w-10 h-10 rounded-xl border border-gray-200 hover:bg-gray-50 flex items-center justify-center transition-colors"
+              className="relative w-10 h-10 rounded-xl border border-gray-200 hover:bg-gray-50 flex items-center justify-center transition-colors touch-target"
             >
               <Bell className="w-4 h-4 text-gray-700" />
               {allAlerts.length > 0 && (
@@ -43,7 +43,7 @@ const TopBar = ({ title, subtitle, children, alerts = [], onMenuToggle }) => {
               )}
             </button>
             {showAlerts && allAlerts.length > 0 && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
+              <div className="absolute right-0 mt-2 w-72 md:w-80 max-h-96 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
                 <div className="p-3 border-b border-gray-100 bg-yellow-50">
                   <div className="font-semibold text-emerald-900 text-sm">Notifications</div>
                 </div>
