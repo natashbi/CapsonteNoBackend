@@ -399,7 +399,7 @@ const LoginScreen = ({ onLogin, onRegister }) => {
                         { color: 'purple', role: 'Admin (IT)', cred: 'admin / admin123' },
                         { color: 'emerald', role: 'Coordinator', cred: 'coordinator / coord123' },
                         { color: 'yellow', role: 'Director', cred: 'director / director123' },
-                        { color: 'blue', role: 'Member', cred: 'j.delacruz / member123' },
+                        { color: 'blue', role: 'Member', cred: 'c.tiglao / member123' },
                       ].map(({ color, role, cred }) => (
                         <div key={role} className={`bg-${color}-50 rounded-lg p-2`}>
                           <div className={`font-semibold text-${color}-900`}>{role}</div>
