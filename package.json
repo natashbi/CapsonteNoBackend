@@ -6,10 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "server": "node backend/server.js",
-    "server:dev": "cd backend && npx nodemon server.js",
-    "seed": "node backend/seed.js"
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.3.1",

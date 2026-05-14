@@ -5,7 +5,7 @@ import {
   User, Plus, Trash2, Lock, Eye, EyeOff, Check, ArrowLeft,
   KeyRound, X, Mail
 } from 'lucide-react';
-import { api } from '../services/api-backend.js';
+import { api } from '../services/api.js';
 
 const LoginScreen = ({ onLogin, onRegister }) => {
   const [logoError, setLogoError] = useState(false);
